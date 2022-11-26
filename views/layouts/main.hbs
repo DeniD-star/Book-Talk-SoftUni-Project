@@ -20,12 +20,15 @@
                 <a href="/">Home</a>
                 <a href="/books/catalog">Catalog</a>
                 <!--Only for logged user-->
+                {{#if user}}
                 <a href="/books/my-profile">Profile</a>
                 <a href="/books/create">Create Review</a>
                 <a href="/auth/logout">Logout</a>
                 <!--Only for guest-->
+                {{else}}
                 <a href="/auth/login">Login</a>
                 <a href="/auth/register">Register</a>
+                {{/if}}
             </nav>
         </div>
 

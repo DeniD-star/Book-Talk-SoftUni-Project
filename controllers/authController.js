@@ -8,8 +8,8 @@ router.get('/register', isGuest(), (req, res) => {
 })
 
 router.post('/register',
+body('email', 'Email is required!').isEmail().withMessage('Invalid email!').isLength({ min: 10 }).withMessage('Email must be at least 10 characters long!'),
     body('username', 'Username is required!').isLength({ min: 4 }).withMessage('Username must be at least 4 characters long!'),
-    body('email', 'Email is required!').isEmail().withMessage('Invalid email!').isLength({ min: 10 }).withMessage('Email must be at least 10 characters long!'),
     body('password', 'Password is required!').isLength({ min: 3 }).withMessage('Password must be at least 3 characters long!'),
     body('rePass', 'Repeat password, please!').custom((value, { req }) => {
         if (value !== req.body.password) {
@@ -24,19 +24,19 @@ router.post('/register',
         try {
 
             if (errors.length > 0) {
-                throw new Error('Validation error!')
+                throw new Error(Object.values(errors).map(e=>e.msg).join('\n'))
             }
             console.log(errors);
-            await req.auth.register(req.body.email, req.body.username, req.body.password);
+            await req.auth.register( req.body.email.trim(), req.body.username.trim(), req.body.password.trim());
             console.log(req.auth);
             res.redirect('/');
         } catch (err) {
 
             const ctx = {
-                errors,
+                errors: err.message.split('\n'),
                 userData: {
                     username: req.body.username,
-                    email: req.body.email
+                    // email: req.body.email
                 }
             }
 
@@ -53,13 +53,19 @@ router.post('/login', isGuest(),async (req, res) => {
 
     try {
 
-        await req.auth.login(req.body.username, req.body.password);
+        await req.auth.login(req.body.username.trim(), req.body.password.trim());
         res.redirect('/');
 
     } catch (err) {
 
+        let errors = [err.message];
+
+        if(err.type == 'credential'){
+            errors = ['Incorrect username or password!']
+        }
+
         const ctx = {
-            errors: [err.message],
+            errors,
             userData: {
                 username: req.body.username,
 

@@ -38,7 +38,7 @@ module.exports =()=> (req, res, next)=>{
 
 async function register(email, username, password){
     const existingUsername = await userService.getUserByUsername(username);
-    const existingEmail = await userService.getUserByUsername(email);
+    const existingEmail = await userService.getUserByEmail(email);
 
     if(existingUsername){
         throw new Error ('Username is taken!')
@@ -55,8 +55,8 @@ async function register(email, username, password){
 
     return generateToken(user);
 }
-async function login( username, password){
-    const user = await userService.getUserByUsername(username);
+async function login( email, password){
+    const user = await userService.getUserByEmail(email);
    
  //if we don't find such user in database
     if(!user){

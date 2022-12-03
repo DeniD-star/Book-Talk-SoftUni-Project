@@ -53,7 +53,7 @@ router.post('/login', isGuest(),async (req, res) => {
 
     try {
 
-        await req.auth.login(req.body.username.trim(), req.body.password.trim());
+        await req.auth.login(req.body.email.trim(), req.body.password.trim());
         res.redirect('/');
 
     } catch (err) {
@@ -61,13 +61,13 @@ router.post('/login', isGuest(),async (req, res) => {
         let errors = [err.message];
 
         if(err.type == 'credential'){
-            errors = ['Incorrect username or password!']
+            errors = ['Incorrect email or password!']
         }
 
         const ctx = {
             errors,
             userData: {
-                username: req.body.username,
+                email: req.body.email,
 
             }
         }

@@ -9,6 +9,19 @@ async function createBook(bookData){
 }
 
 
+
+async function getAllBooks(){
+    const books = await Book.find({}).lean()
+    return books;
+}
+async function getBookById(id){
+    const book = await Book.findById(id);
+    return book;
+}
+
+
 module.exports = {
-    createBook
+    createBook,
+    getAllBooks,
+    getBookById
 }

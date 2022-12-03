@@ -19,9 +19,21 @@ async function getBookById(id){
     return book;
 }
 
+async function editBook(bookId, bookData){
+    const book = await Book.findById(bookId);
+    book.title = bookData.title.trim()
+    book.author = bookData.author.trim()
+    book.imageUrl = bookData.imageUrl.trim()
+    book.bookReview = bookData.bookReview.trim()
+    book.genre = bookData.genre.trim()
+    book.stars = Number(bookData.stars).trim();
 
+    return book.save()
+   
+}
 module.exports = {
     createBook,
     getAllBooks,
-    getBookById
+    getBookById,
+    editBook
 }

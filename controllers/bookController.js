@@ -4,41 +4,42 @@ const { parseError } = require('../util/parse');
 
 const router = require('express').Router();
 
-router.get('/create', isUser(), (req, res)=>{
+router.get('/create', isUser(), (req, res) => {
     res.render('create')
 })
-router.get('/edit/:id', isUser(), async(req, res)=>{
-   try {
+router.get('/edit/:id', isUser(), async (req, res) => {
+    try {
 
-    const book = await req.storage.getBookById(req.params.id);
-    if(book.owner != req.user._id){
-        throw new Error ('You cannot edit a book you have not created!')
+        const book = await req.storage.getBookById(req.params.id);
+        if (book.owner != req.user._id) {
+            throw new Error('You cannot edit a book you have not created!')
+        }
+
+        res.render('edit', { book })
+    } catch (err) {
+        console.log(err.message);
+        res.redirect('/books/catalog')
     }
-
-        res.render('edit', {book})
-   } catch (err) {
-       console.log(err.message);
-       res.redirect('/books/catalog')
-   }
 })
-router.get('/details/:id', isUser(), async(req, res)=>{
-   try {
+router.get('/details/:id', isUser(), async (req, res) => {
+    try {
 
-    const book = await req.storage.getBookById(req.params.id);
-    const user = await getUserByEmail(req.user.email)
-    book.hasUser = Boolean(req.user);
-    book.isOwner = req.user && req.user._id == book.owner;
-    book.added = req.user && user.wishingList.includes(book._id)
+        const book = await req.storage.getBookById(req.params.id);
+        const user = await getUserByEmail(req.user.email)
+        book.hasUser = Boolean(req.user);
+        book.isOwner = req.user && req.user._id == book.owner;
+        book.added = req.user && user.wishingList.includes(book._id)
+
+        console.log(user.wishingList[0]);
 
 
-
-        res.render('details', {book})
-   } catch (err) {
-       console.log(err.message);
-       res.redirect('/404')
-   }
+        res.render('details', { book })
+    } catch (err) {
+        console.log(err.message);
+        res.redirect('/404')
+    }
 })
-router.post('/create', isUser(), async(req, res)=>{
+router.post('/create', isUser(), async (req, res) => {
 
     const bookData = {
         title: req.body.title.trim(),
@@ -47,83 +48,83 @@ router.post('/create', isUser(), async(req, res)=>{
         bookReview: req.body.bookReview.trim(),
         genre: req.body.genre.trim(),
         stars: Number(req.body.stars),
-        owner : req.user._id
+        owner: req.user._id
     }
-   try {
-  
+    try {
 
-    await req.storage.createBook(bookData);
-    res.redirect('/books/catalog')
-   } catch (err) {
-       console.log(err.message);
-       let errors;
-       if (err.errors) {
-           errors = Object.values(err.errors).map(e => e.properties.message);
-       } else {
-           errors = [err.message]
-       }
 
-       const ctx ={
-           errors,
-           bookData: {
-            title: req.body.title,
-            author: req.body.author,
-            imageUrl: req.body.imageUrl,
-            bookReview: req.body.bookReview,
-            genre: req.body.genre,
-            stars: Number(req.body.stars)
-           }
-       }
-       res.render('create', ctx)
-   }
-})
-router.post('/edit/:id', isUser(), async(req, res)=>{
-
-   try {
-  
-    const book = await req.storage.getBookById(req.params.id);
-    if(book.owner != req.user._id){
-        throw new Error ('You cannot edit a book you have not created!')
-    }
-
-    await req.storage.editBook(req.params.id, req.body)
+        await req.storage.createBook(bookData);
         res.redirect('/books/catalog')
-   } catch (err) {
-       console.log(err.message);
-  
-       const ctx ={
-           errors: parseError(err),
-           book: {
-               _id: req.params.id,
-            title: req.body.title,
-            author: req.body.author,
-            imageUrl: req.body.imageUrl,
-            bookReview: req.body.bookReview,
-            genre: req.body.genre,
-            stars: Number(req.body.stars)
-           }
-       }
-       res.render('edit', ctx)
-   }
+    } catch (err) {
+        console.log(err.message);
+        let errors;
+        if (err.errors) {
+            errors = Object.values(err.errors).map(e => e.properties.message);
+        } else {
+            errors = [err.message]
+        }
+
+        const ctx = {
+            errors,
+            bookData: {
+                title: req.body.title,
+                author: req.body.author,
+                imageUrl: req.body.imageUrl,
+                bookReview: req.body.bookReview,
+                genre: req.body.genre,
+                stars: Number(req.body.stars)
+            }
+        }
+        res.render('create', ctx)
+    }
+})
+router.post('/edit/:id', isUser(), async (req, res) => {
+
+    try {
+
+        const book = await req.storage.getBookById(req.params.id);
+        if (book.owner != req.user._id) {
+            throw new Error('You cannot edit a book you have not created!')
+        }
+
+        await req.storage.editBook(req.params.id, req.body)
+        res.redirect('/books/catalog')
+    } catch (err) {
+        console.log(err.message);
+
+        const ctx = {
+            errors: parseError(err),
+            book: {
+                _id: req.params.id,
+                title: req.body.title,
+                author: req.body.author,
+                imageUrl: req.body.imageUrl,
+                bookReview: req.body.bookReview,
+                genre: req.body.genre,
+                stars: Number(req.body.stars)
+            }
+        }
+        res.render('edit', ctx)
+    }
 })
 
-router.get('/catalog', async(req, res)=>{
+router.get('/catalog', async (req, res) => {
     const books = await req.storage.getAllBooks();
-    res.render('catalog', {books})
+    res.render('catalog', { books })
 })
-router.get('/delete/:id', isUser(),  async(req, res)=>{
+router.get('/delete/:id', isUser(), async (req, res) => {
     try {
 
         const book = await req.storage.deleteBook(req.params.id);
 
-        if(book.author != req.user._id){
-            throw new Error ('Cannot delete a book you have not created!')
+        if (book.author != req.user._id) {
+            throw new Error('Cannot delete a book you have not created!')
         }
 
         res.redirect('/books/catalog');
-        
+
     } catch (err) {
-        
+
         res.redirect('/books/details/' + req.params.id)
     }
 })
@@ -140,5 +141,21 @@ router.get('/add/:id', isUser(), async (req, res) => {
         console.log(err.message);
         res.redirect('/');
     }
+})
+
+router.get('/my-profile', isUser(), async (req, res) => {
+
+    try {
+        const user = await req.storage.getUsersBooks(req.user._id);
+        // const booksUser = Object.values(user.wishingList);
+        // user.booksUser = user.wishingList;
+        // console.log(booksUser);
+        // await req.storage.getUsersBooks(req.user._id)
+        res.render('profile', { user })
+    } catch (err) {
+        console.log(err.message);
+        res.redirect('/404')
+    }
+
 })
 module.exports = router;

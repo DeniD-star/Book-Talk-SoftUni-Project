@@ -44,8 +44,15 @@ async function addBook(bookId, userId){
     if (book.owner == user._id) {
         throw new Error('Cannot add your own book!');
     }
-    user.wishingList.push(bookId);
+    user.wishingList.push(book);
+    console.log(user.wishingList , 'helooooooooooo');
     return user.save()
+}
+
+async function getUsersBooks(userId){
+        const user = await User.findById(userId).populate('wishingList').lean();
+        console.log(user);
+       return user;
 }
 module.exports = {
     createBook,
@@ -53,5 +60,6 @@ module.exports = {
     getBookById,
     editBook,
     deleteBook,
-    addBook
+    addBook,
+    getUsersBooks
 }
